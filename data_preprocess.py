@@ -84,7 +84,7 @@ def add_category(path, dict_data, category=[], load_path="", save_path=""):
 def launch(load_path, save_path, ref_path):
     def reference_model_init(ref_path):
         if not os.path.exists(ref_path):
-            raise FileNotFoundError("reference_path no exists.")
+            raise FileNotFoundError("reference_path no exists."+ref_path)
             
         ref = feature.Model()
         V, F = igl.read_triangle_mesh(ref_path)
@@ -99,7 +99,7 @@ def launch(load_path, save_path, ref_path):
     dict_data = dict()
 
     if not os.path.exists(abs_path):
-        raise FileNotFoundError()
+        raise FileNotFoundError("path is not found " + abs_path)
     
 
 
