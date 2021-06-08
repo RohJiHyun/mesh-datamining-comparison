@@ -4,6 +4,7 @@
 
 
 from sklearn.cluster import KMeans, DBSCAN
+from sklearn.neighbors import NearestNeighbors
 import os, json, random
 import numpy as np
 import pandas as pd
@@ -61,36 +62,46 @@ def k_distances(X, n=None, dist_func=None):
     n - number of neighbors that are included in returned distances (default number of attributes + 1)
     dist_func - function to count distance between observations in X (default euclidean function)
     """
-    if type(X) is pd.DataFrame:
-        X = X.values
-    k=0
-    if n == None:
-        k=X.shape[1]+2
-    else:
-        k=n+1
+    # print(len(X))
+    # if type(X) is pd.DataFrame:
+    #     X = X.values
+    # k=0
+    # if n == None:
+    #     k=X.shape[1]+2
+    # else:
+    #     k=n+1
 
-    if dist_func == None:
-        # euclidean distance square root of sum of squares of differences between attributes
-        dist_func = lambda x, y: math.sqrt(
-            np.sum(
-                np.power(x-y, np.repeat(2,x.size))
-            )
-        )
+    # if dist_func == None:
+    #     # euclidean distance square root of sum of squares of differences between attributes
+    #     dist_func = lambda x, y: math.sqrt(
+    #         np.sum(
+    #             np.power(x-y, np.repeat(2,x.size))
+    #         )
+    #     )
 
-    Distances = pd.DataFrame({
-        "i": [i//10 for i in range(0, len(X)*len(X))],
-        "j": [i%10 for i in range(0, len(X)*len(X))],
-        "d": [dist_func(x,y) for x in X for y in X]
-    })
-    import matplotlib.pyplot as plt
+    # Distances = pd.DataFrame({
+    #     "i": [i//10 for i in range(0, len(X)*len(X))],
+    #     "j": [i%10 for i in range(0, len(X)*len(X))],
+    #     "d": [dist_func(x,y) for x in X for y in X]
+    # })
+    # import matplotlib.pyplot as plt
 
-    eps_dist = np.sort([g[1].iloc[k].d for g in iter(Distances.groupby(by="i"))])
-    print(eps_dist)
-    plt.hist(eps_dist,bins=30)
+    # eps_dist = np.sort([g[1].iloc[k].d for g in iter(Distances.groupby(by="i"))])
+
+    neigh = NearestNeighbors(n_neighbors=n)
+    nbr = neigh.fit(X)
+    distances, indices = nbr.kneighbors(X)
+    print("test", distances.shape)
+    eps_dist = distances
+    print(len(eps_dist))
+    # plt.hist(eps_dist,bins=30)
     plt.ylabel('n')
+    eps_dist = np.sort(eps_dist[:,1])
+    print(eps_dist)
     plt.xlabel('Epsilon distance')
+    plt.plot(eps_dist)
     plt.show()
-    return np.sort([g[1].iloc[k].d for g in iter(Distances.groupby(by="i"))])
+    return eps_dist
 
 def load_data(root_path, conf_file):
     # preproc
@@ -142,14 +153,19 @@ def plotting(transformed_data, predict_label, orig_label, label_name_list):
                    l.append(idx)    
             dic[check] = l
     
-
-
+        s = ['royalblue', 'springgreen','maroon',  'orange', 'grey','forestgreen', 'slategrey', 'mediumorchid', 'tan', 'deeppink', 'olive', 'goldenrod', 'lightcyan', 'navy']
+    
+      
+        vectorizer = np.vectorize(lambda x: s[x % len(s)])
         for category in emotion_category:
             idx_list = dic[category]
-            print(np.take(c, idx_list))
-            t = np.take(c, idx_list)*20
+            # print(np.take(s, idx_list))
+            t = np.take(c, idx_list)
             print("cate", category)
-            plt.scatter(np.take(xs,idx_list), np.take(ys,idx_list), c=t, label=category)
+            # plt.scatter(np.take(xs,idx_list), np.take(ys,idx_list), c=t)
+            print(vectorizer(t))
+
+            plt.scatter(np.take(xs,idx_list), np.take(ys,idx_list), c=vectorizer(t))
             # plt.scatter(xs[i], ys[i], c=c[i], label=legend[i])
         plt.legend()
         plt.show()
